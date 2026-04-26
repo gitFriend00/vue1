@@ -405,22 +405,5 @@ h2 {
     align-items: center;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: scale(0.96) translateY(8px);
-}
-
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
-
 /* #endregion */
 </style>
