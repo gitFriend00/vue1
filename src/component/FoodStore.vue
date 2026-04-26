@@ -113,11 +113,11 @@
 
 <script setup>
 import { ref, watch} from 'vue'
-import { useCounterStore } from '@/stores/counter'
+import { useCrudStore } from '@/stores/crud'
 
 // #region Initialization
 // Pinia global manipulation store para sa food items at auto-incrementing ID
-const counterStore = useCounterStore()
+const counterStore = useCrudStore()
 // #endregion
 
 // #region State Management
