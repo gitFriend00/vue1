@@ -1,13 +1,13 @@
 <template>
-    <!-- Pangunahing Food Store component na may data table at add/edit modal -->
+    <!-- data table at add/edit modal -->
     <v-app>
         <v-main>
             <v-container class="pa-4">
                 <h2>Food Store</h2>
 
-                <!-- Ipakita ang lahat ng food items sa isang sortable/filterable table -->
+                <!-- food items table -->
                 <v-card>
-                    <!-- Loading indicator habang nag-load ang data -->
+                    <!-- Loading indicator habang nag-load ang data... matuto maghintay -->
                     <v-progress-linear v-if="isLoading" indeterminate></v-progress-linear>
                     <v-data-table :items="counterStore.items" :headers="headers" class="elevation-1"
                         :disabled="isLoading">
@@ -43,10 +43,10 @@
                     </v-data-table>
                 </v-card>
             </v-container>
-            <!-- Floating Action Button upang magbukas ng add/edit modal -->
+            <!-- Floating Button para sa add/edit modal... floating parang brain nimo -->
             <v-fab icon="mdi-plus" app appear @click="openDialog" class="fab-btn" :disabled="isLoading"></v-fab>
 
-            <!-- Modal dialog para sa pagdagdag o pag-edit ng food items -->
+            <!-- Modal dialog for edit ng food items -->
             <v-dialog v-model="showDialog" max-width="600" persistent>
                 <v-card class="dialog-card">
                     <v-card-title class="sticky-header d-flex justify-space-between align-center">
@@ -116,16 +116,16 @@ import { ref, watch} from 'vue'
 import { useCounterStore } from '@/stores/counter'
 
 // #region Initialization
-// Simulan ang Pinia store para sa global na pag-manage ng food items
+// Pinia global manipulation store para sa food items at auto-incrementing ID
 const counterStore = useCounterStore()
 // #endregion
 
 // #region State Management
 // Reference sa form para sa validation
 const formRef = ref(null)
-// Subaybayan kung kasalukuyang nag-e-edit o nagdadagdag ng bagong item
+// para sa pag-track kung ang form ay nasa edit mode o add mode
 const isEditing = ref(false)
-// Kontrolin ang visibility ng modal dialog
+// para sa visibility ng modal dialog
 const showDialog = ref(false)
 // Loading state para sa async operations
 const isLoading = ref(false)
@@ -134,7 +134,7 @@ const isLoading = ref(false)
 // #region Form Data
 // Reactive form object na naglalaman ng food item data
 const form = ref({
-    id: counterStore.nextId, // Auto-generated ID mula sa store
+    id: counterStore.nextId,
     name: '',
     image: '',
     description: '',
@@ -147,7 +147,7 @@ const form = ref({
 })
 // #endregion
 
-watch(
+watch( // watcher para i track and next id na papasok sa form 24/7 yarn
     () => counterStore.nextId,
     (newId) => {
         if (!isEditing.value) {
@@ -157,7 +157,7 @@ watch(
 )
 
 // #region Table Configuration
-// I-configure ang mga column para sa data table
+// data table
 const headers = [
     { title: 'ID', value: 'id' },
     { title: 'Name', value: 'name' },
@@ -190,21 +190,21 @@ const numberRule = (value) => {
 // #endregion
 
 // #region Dialog Functions
-// Buksan ang modal dialog para sa pagdagdag ng bagong item
+// open modal
 const openDialog = async () => {
     try {
         isLoading.value = true
         await new Promise((resolve) => setTimeout(resolve, 300)) // Simulate data loading
         showDialog.value = true
     } catch (error) {
-        alert(`⚠️ Error opening dialog: ${error.message}`)
+        alert(`Error opening dialog: ${error.message}`)
     } finally {
         isLoading.value = false
     }
 }
 
-// Isara ang modal dialog at i-reset ang form
-const closeDialog = async () => {
+// close modal
+const closeDialog = async () => { //try catch kase naka async await na may loading state, para mahandle yung potential errors at maayos ang user experience nakanang
     try {
         isLoading.value = true
         showDialog.value = false
@@ -218,7 +218,6 @@ const closeDialog = async () => {
 // #endregion
 
 // #region Form Management
-// Liwasin ang form fields at i-reset sa initial state
 const resetForm = () => {
     try {
         form.value = {
@@ -236,13 +235,12 @@ const resetForm = () => {
         isEditing.value = false
         formRef.value?.resetValidation?.()
     } catch (error) {
-        alert(`⚠️ Error resetting form: ${error.message}`)
+        alert(`Error resetting form: ${error.message}`)
     }
 }
 // #endregion
 
 // #region Save Operations
-// I-save ang bagong item o i-update ang existing item sa store
 const saveItem = async () => {
     try {
         isLoading.value = true
@@ -250,7 +248,7 @@ const saveItem = async () => {
         // Tukuyin kung lahat ng validation ay lumampas
         const valid = await formRef.value?.validate?.()
         if (valid === false) {
-            alert('❌ Mangyaring kumpletuhin ang lahat ng required fields.')
+            alert('Mangyaring lamang na kumpletuhin ang lahat ng required fields.\n wag makulit!')
             isLoading.value = false
             return
         }
@@ -263,18 +261,17 @@ const saveItem = async () => {
             quantity: Number(form.value.quantity),
         }
 
-        // Tukuyin kung may existing na item na may same ID
         if (isEditing.value) {
             counterStore.updateItem(payload)
-            alert('✅ Item successfully updated!')
+            alert('Item successfully updated!')
         } else {
             counterStore.addItem(payload)
-            alert('✅ Item successfully added!')
+            alert('Item successfully added!')
         }
 
         await closeDialog()
     } catch (error) {
-        alert(`⚠️ Error saving item: ${error.message}`)
+        alert(`Error saving item: ${error.message}`)
     } finally {
         isLoading.value = false
     }
@@ -282,25 +279,24 @@ const saveItem = async () => {
 // #endregion
 
 // #region Edit Operations
-// Iload ang item data sa form para sa pag-edit
 const editItem = async (item) => {
     try {
         isLoading.value = true
 
         if (!item || !item.id) {
-            alert('⚠️ Invalid item selected.')
+            alert('Invalid item selected.')
             isLoading.value = false
             return
         }
 
-        // Simulate data loading
+        //data loading
         await new Promise((resolve) => setTimeout(resolve, 300))
 
         form.value = { ...item }
         isEditing.value = true
         showDialog.value = true
     } catch (error) {
-        alert(`⚠️ Error loading item: ${error.message}`)
+        alert(`Error loading item: ${error.message}`)
     } finally {
         isLoading.value = false
     }
@@ -308,29 +304,28 @@ const editItem = async (item) => {
 // #endregion
 
 // #region Delete Operations
-// Alisin ang item mula sa store at i-reset ang form kung ito ay nae-edit
 const deleteItem = async (id) => {
     try {
         isLoading.value = true
 
         if (!id) {
-            alert('⚠️ Invalid item ID.')
+            alert('Invalid item ID ngani.')
             isLoading.value = false
             return
         }
 
-        // Humingi ng confirmation bago mag-delete
-        const confirmed = confirm('🗑️ Sigurado ka na bang gusto mong i-delete ang item na ito?')
+        
+        const confirmed = confirm('Sigurado ka na bang gusto mong i-delete ang item na ito?')
         if (!confirmed) {
             isLoading.value = false
             return
         }
 
-        // Simulate deletion delay
+        //deletion delay
         await new Promise((resolve) => setTimeout(resolve, 500))
 
         counterStore.deleteItem(id)
-        alert('✅ Item successfully deleted!')
+        alert('Item successfully deleted!')
 
         if (!isEditing.value) {
             form.value.id = counterStore.nextId
@@ -338,7 +333,7 @@ const deleteItem = async (id) => {
 
 
     } catch (error) {
-        alert(`⚠️ Error deleting item: ${error.message}`)
+        alert(`Error deleting item: ${error.message}`)
     } finally {
         isLoading.value = false
     }
@@ -346,7 +341,7 @@ const deleteItem = async (id) => {
 // #endregion
 
 // #region Utilities
-// I-format ang presyo bilang USD currency
+// USD formatter gamit ang Intl API
 const formatCurrency = (value) => {
     try {
         if (value === null || value === undefined || value === '') return ''
@@ -366,14 +361,13 @@ const formatCurrency = (value) => {
 }
 // #endregion
 </script>
-
 <style scoped>
-/* #region Styles */
+
 h2 {
     margin-bottom: 1rem;
 }
 
-/* Dialog card styling na may border radius at flex layout */
+
 .dialog-card {
     border-radius: 12px;
     display: flex;
@@ -381,7 +375,7 @@ h2 {
     max-height: 90vh;
 }
 
-/* Sticky header na nananatiling visible habang nag-scroll */
+
 .sticky-header {
     position: sticky;
     top: 0;
@@ -392,18 +386,16 @@ h2 {
     flex-shrink: 0;
 }
 
-/* Form container na may overflow handling para sa long content */
+
 .form-container {
     overflow-y: auto;
     flex: 1;
 }
 
-/* Actions container para sa horizontal layout ng buttons */
+
 .actions-container {
     display: flex;
     gap: 4px;
     align-items: center;
 }
-
-/* #endregion */
 </style>
