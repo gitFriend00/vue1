@@ -55,8 +55,8 @@
                             <v-icon>mdi-close</v-icon>
                         </v-btn>
                     </v-card-title>
-                 
-                        <v-progress-linear v-if="isLoading" indeterminate></v-progress-linear>
+
+                    <v-progress-linear v-if="isLoading" indeterminate></v-progress-linear>
                     <v-form ref="formRef" @submit.prevent="saveItem" class="pa-4 form-container">
                         <v-row>
                             <v-col cols="12">
@@ -84,7 +84,7 @@
                                 <v-text-field label="Kind" v-model="form.kind" :rules="[requiredRule]" />
                             </v-col>
                             <v-col cols="12">
-                                <v-text-field label="Remarks" v-model="form.remarks" multiline />
+                                <v-text-field label="Remarks" v-model="form.remarks" multiline :rules="[requiredRule]" />
                             </v-col>
                             <v-col cols="12" sm="6">
                                 <v-text-field label="Price" v-model="form.price" type="number"
@@ -104,7 +104,7 @@
                             </v-btn>
                         </v-row>
                     </v-form>
-                  
+
                 </v-card>
             </v-dialog>
         </v-main>
@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, watch} from 'vue'
+import { ref, watch } from 'vue'
 import { useCrudStore } from '@/stores/crud'
 
 // #region Initialization
@@ -129,6 +129,8 @@ const isEditing = ref(false)
 const showDialog = ref(false)
 // Loading state para sa async operations
 const isLoading = ref(false)
+// for error handling sa URL validation
+const urlError = ref('')
 // #endregion
 
 // #region Form Data
@@ -177,10 +179,25 @@ const headers = [
 // Validation rules para sa form fields
 const requiredRule = (value) => !!value || 'This field is required.'
 const urlRule = (value) => {
-    if (!value) return 'This field is required.'
-    // Tukuyin kung valid na URL format
-    const valid = /^https?:\/\/.+/.test(value)
-    return valid || 'Enter a valid URL.'
+    if (!value) {
+        urlError.value = 'This field is required.'
+        return urlError.value
+    }
+
+    try {
+        const url = new URL(value)
+
+        if (!['http:', 'https:'].includes(url.protocol)) {
+            urlError.value = 'URL must start with http or https.'
+            return urlError.value
+        }
+
+        urlError.value = '' // ✅ clear if valid
+        return true
+    } catch (err) {
+        urlError.value = 'Enter a valid URL.'
+        return urlError.value
+    }
 }
 const numberRule = (value) => {
     if (value === null || value === undefined || value === '') return 'This field is required.'
@@ -210,7 +227,7 @@ const closeDialog = async () => { //try catch kase naka async await na may loadi
         showDialog.value = false
         resetForm()
     } catch (error) {
-        alert(`⚠️ Error closing dialog: ${error.message}`)
+        alert(`Error closing dialog: ${error.message}`)
     } finally {
         isLoading.value = false
     }
@@ -246,10 +263,13 @@ const saveItem = async () => {
         isLoading.value = true
 
         // Tukuyin kung lahat ng validation ay lumampas
-        const valid = await formRef.value?.validate?.()
-        if (valid === false) {
-            alert('Mangyaring lamang na kumpletuhin ang lahat ng required fields.\n wag makulit!')
-            isLoading.value = false
+        const { valid } = await formRef.value?.validate?.()
+        if (!valid) {
+            if (urlError.value) {
+                alert(`URL Error: ${urlError.value}`)
+            } else {
+                alert('Mangyaring kumpletuhin ang lahat ng required fields.')
+            }
             return
         }
         // Simulate processing delay
@@ -314,7 +334,7 @@ const deleteItem = async (id) => {
             return
         }
 
-        
+
         const confirmed = confirm('Sigurado ka na bang gusto mong i-delete ang item na ito?')
         if (!confirmed) {
             isLoading.value = false
@@ -362,7 +382,6 @@ const formatCurrency = (value) => {
 // #endregion
 </script>
 <style scoped>
-
 h2 {
     margin-bottom: 1rem;
 }
